@@ -11,6 +11,11 @@ typedef struct Contact
     char *messenger_page_link;
 } Contact;
 
+typedef struct MessengerProfile
+{
+    char *link;
+} MessengerProfile;
+
 int main()
 {
     printf("hello");
