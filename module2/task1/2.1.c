@@ -17,6 +17,28 @@ typedef struct ContactList {
     size_t size;
 } ContactList;
 
+void delete_contact(ContactList* list, const char* firstname, const char* surname) {
+    if (list == NULL || firstname == NULL || surname == NULL || list->size <= 0) {
+        printf("Invalid arguments.\n");
+        return;
+    }
+
+    for (size_t i = 0; i < list->size; i++) {
+        if (strcmp(list->contacts[i].firstname, firstname) == 0 && strcmp(list->contacts[i].surname, surname) == 0) {
+            // for (size_t j = i; j < list->size - 1; j++) {
+            //  list->contacts[j] = list->contacts[i];
+            memmove(&list->contacts[i], &list->contacts[i + 1], (list->size - i - 1) * sizeof(Contact));
+            //}
+            list->size--;
+            break;
+        }
+        if (i == list->size - 1) {
+            printf("Nothing to delete. Contact not found.\n");
+            return;
+        }
+    }
+}
+
 void update_contact_list(ContactList* list, const char* firstname, const char* surname, const char* new_workplace,
                          const char* new_phone_number, const char* new_email, const char* new_socials_link,
                          const char* new_messenger_page_link) {
@@ -80,7 +102,6 @@ void print_contact(Contact* contact) {
         return;
     }
 
-    printf("Contact Information:\n");
     printf("First Name: %s\n", contact->firstname);
     printf("Surname: %s\n", contact->surname);
     printf("Workplace: %s\n", contact->workplace);
@@ -92,6 +113,7 @@ void print_contact(Contact* contact) {
 }
 
 void print_contact_list(ContactList* list) {
+    printf("\nContact List Information:\n");
     for (size_t i = 0; i < list->size; i++) {
         print_contact(&(list->contacts[i]));
     }
@@ -102,11 +124,15 @@ int main() {
     list.size = 0;
     add_contact(&list, "Никита", "Иванов", "ОАО Газпром", "+79143248677", "example1@mail.ru", "www.social.com/link_id",
                 "telegram@example12");
-    add_contact(&list, "Игорь", "Пертров", "ОАО Газпром", "+7312258677", "example2@mail.ru", "www.social.com/link_id2",
+    add_contact(&list, "Игорь", "Петров", "ОАО Газпром", "+7312258677", "example2@mail.ru", "www.social.com/link_id2",
                 "telegram@example13");
     print_contact_list(&list);
 
-    update_contact_list(&list, "Иван", "Иванов", "ООО Олимп", NULL, NULL, NULL, NULL);
+    update_contact_list(&list, "Никита", "Иванов", "ООО Олимп", NULL, NULL, NULL, NULL);
     print_contact_list(&list);
+    delete_contact(&list, "Никита", "Иванов");
+    delete_contact(&list, "Игорь", "Петров");
+    print_contact_list(&list);
+    printf("%ld\n", list.size);
     return 0;
 }
