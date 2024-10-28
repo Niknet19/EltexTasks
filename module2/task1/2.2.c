@@ -1,7 +1,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-double sum(int num_args, ...) {
+double sum(size_t num_args, ...) {
     double result = 0.0;
     va_list args;
     va_start(args, num_args);
@@ -12,19 +12,20 @@ double sum(int num_args, ...) {
     return result;
 }
 
-double sub(int num_args, ...) {
+double sub(size_t num_args, ...) {
     double result = 0;
     va_list args;
     va_start(args, num_args);
-    for (size_t i = 0; i < num_args; i++) {
-        result += (i == 0) ? va_arg(args, double) : -(va_arg(args, double));
-        // result *= va_arg(args, double);
+    result = va_arg(args, double);
+    for (size_t i = 1; i < num_args; i++) {
+        // result += (i == 0) ? va_arg(args, double) : -(va_arg(args, double));
+        result -= va_arg(args, double);
     }
     va_end(args);
     return result;
 }
 
-double mul(int num_args, ...) {
+double mul(size_t num_args, ...) {
     double result = 1.0;
     va_list args;
     va_start(args, num_args);
@@ -35,23 +36,26 @@ double mul(int num_args, ...) {
     return result;
 }
 
-double div(int num_args, ...) {
+double div(size_t num_args, ...) {
     double result = 0.0;
     va_list args;
     va_start(args, num_args);
-    for (size_t i = 0; i < num_args; i++) {
-        if (i == 0)
-            result = va_arg(args, double);
-        else
-            result = result / va_arg(args, double);
+    result = va_arg(args, double);
+    for (size_t i = 1; i < num_args; i++) {
+        double divider = va_arg(args, double);
+        if (divider == 0) {
+            fprintf(stderr, "Error: Zero division.\n");
+            return 0;
+        }
+        result = result / divider;
     }
     va_end(args);
     return result;
 }
 
-void get_user_input(int* num_args, double* args) {
+void get_user_input(size_t* num_args, double* args) {
     printf("Введите количество аргументов (2-4): ");
-    scanf("%d", num_args);
+    scanf("%ld", num_args);
 
     if (*num_args <= 1 || *num_args > 4) {
         printf("Количество аргументов должно быть от 2 до 4.\n");
@@ -59,21 +63,21 @@ void get_user_input(int* num_args, double* args) {
         return;
     }
 
-    printf("Введите %d аргумента(ов):\n", *num_args);
-    for (int i = 0; i < *num_args; i++) {
-        printf("Аргумент %d: ", i + 1);
+    printf("Введите %ld аргумента(ов):\n", *num_args);
+    for (size_t i = 0; i < *num_args; i++) {
+        printf("Аргумент %ld: ", i + 1);
         while (scanf("%lf", &args[i]) != 1) {
             printf("Ошибка ввода. Пожалуйста, введите число: ");
             while (getchar() != '\n')
-                ;  // Очищаем буфер
+                ;
         }
     }
 }
 
 int main() {
     int choice;
-    double args[4];  // Максимум 4 аргумента
-    int num_args;
+    double args[4];
+    size_t num_args;
 
     while (1) {
         printf("\nВыберите действие:\n");
@@ -87,15 +91,15 @@ int main() {
         while (scanf("%d", &choice) != 1 || choice < 1 || choice > 5) {
             printf("Ошибка ввода. Пожалуйста, введите число от 1 до 5: ");
             while (getchar() != '\n')
-                ;  // Очищаем буфер
+                ;
         }
 
         if (choice == 5) {
-            break;  // Выход из программы
+            break;
         }
 
         get_user_input(&num_args, args);
-        if (num_args == 0) continue;  // Если введено некорректное количество аргументов
+        if (num_args == 0) continue;
 
         double result;
         switch (choice) {

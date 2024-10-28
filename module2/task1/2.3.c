@@ -3,8 +3,8 @@
 
 #define OPERATION_NUMBER 4
 
-typedef double (*operation_func_ptr)(int, ...);
-double sum(int num_args, ...) {
+typedef double (*operation_func_ptr)(size_t, ...);
+double sum(size_t num_args, ...) {
     double result = 0.0;
     va_list args;
     va_start(args, num_args);
@@ -15,19 +15,20 @@ double sum(int num_args, ...) {
     return result;
 }
 
-double sub(int num_args, ...) {
+double sub(size_t num_args, ...) {
     double result = 0;
     va_list args;
     va_start(args, num_args);
-    for (size_t i = 0; i < num_args; i++) {
-        result += (i == 0) ? va_arg(args, double) : -(va_arg(args, double));
-        // result *= va_arg(args, double);
+    result = va_arg(args, double);
+    for (size_t i = 1; i < num_args; i++) {
+        // result += (i == 0) ? va_arg(args, double) : -(va_arg(args, double));
+        result -= va_arg(args, double);
     }
     va_end(args);
     return result;
 }
 
-double mul(int num_args, ...) {
+double mul(size_t num_args, ...) {
     double result = 1.0;
     va_list args;
     va_start(args, num_args);
@@ -38,18 +39,42 @@ double mul(int num_args, ...) {
     return result;
 }
 
-double div(int num_args, ...) {
+double div(size_t num_args, ...) {
     double result = 0.0;
     va_list args;
     va_start(args, num_args);
-    for (size_t i = 0; i < num_args; i++) {
-        if (i == 0)
-            result = va_arg(args, double);
-        else
-            result = result / va_arg(args, double);
+    result = va_arg(args, double);
+    for (size_t i = 1; i < num_args; i++) {
+        double divider = va_arg(args, double);
+        if (divider == 0) {
+            fprintf(stderr, "Error: Zero division.\n");
+            return 0;
+        }
+        result = result / divider;
     }
     va_end(args);
     return result;
+}
+
+void get_user_input(size_t* num_args, double* args) {
+    printf("Введите количество аргументов (2-4): ");
+    scanf("%ld", num_args);
+
+    if (*num_args <= 1 || *num_args > 4) {
+        printf("Количество аргументов должно быть от 2 до 4.\n");
+        *num_args = 0;
+        return;
+    }
+
+    printf("Введите %ld аргумента(ов):\n", *num_args);
+    for (size_t i = 0; i < *num_args; i++) {
+        printf("Аргумент %ld: ", i + 1);
+        while (scanf("%lf", &args[i]) != 1) {
+            printf("Ошибка ввода. Пожалуйста, введите число: ");
+            while (getchar() != '\n')
+                ;  // Очищаем буфер
+        }
+    }
 }
 
 typedef struct Operation {
@@ -57,52 +82,40 @@ typedef struct Operation {
     operation_func_ptr func;
 } Operation;
 
-Operation operations[] = {{"Сложение", sum},
-                          {"Вычитание", sub},
-                          {"Умножение", mul},
-                          {"Деление", div}};
+Operation operations[] = {{"Сложение", sum}, {"Вычитание", sub}, {"Умножение", mul}, {"Деление", div}};
 
 int main() {
-    int op_index = 0;
-    int num_args = 1;
+    // printf("Результат: %lf\n", operations[op_index - 1].func(num_args, args[0]));
+    int choice;
+    double args[4];
+    size_t num_args;
+
     while (1) {
-        printf("Введите номер операции:\n");
-        for (size_t i = 0; i < OPERATION_NUMBER; i++) {
-            printf("%d : %s\n", i + 1, operations[i].op_name);
-        }
-        printf(">> ");
-        scanf("%d", &op_index);
+        printf("\nВыберите действие:\n");
+        printf("1. Сложение\n");
+        printf("2. Вычитание\n");
+        printf("3. Умножение\n");
+        printf("4. Деление\n");
+        printf("5. Выход\n");
+        printf("Ваш выбор: ");
 
-        printf("\nВведите количество чисел:");
-        scanf("%d", &num_args);
-
-        printf("\nВведите аргументы:");
-        double args[num_args];
-        for (size_t i = 0; i < num_args; i++) {
-            scanf("%lf", &args[i]);
+        while (scanf("%d", &choice) != 1 || choice < 1 || choice > 5) {
+            printf("Ошибка ввода. Пожалуйста, введите число от 1 до 5: ");
+            while (getchar() != '\n')
+                ;
         }
 
-        switch (num_args) {
-            case 1:
-                printf("Результат: %lf\n",
-                       operations[op_index - 1].func(num_args, args[0]));
-                break;
-            case 2:
-                printf("Результат: %lf\n", operations[op_index - 1].func(
-                                               num_args, args[0], args[1]));
-                break;
-            case 3:
-                printf("Результат: %lf\n",
-                       operations[op_index - 1].func(num_args, args[0], args[1],
-                                                     args[2]));
-            case 4:
-                printf("Результат: %lf\n",
-                       operations[op_index - 1].func(num_args, args[0], args[1],
-                                                     args[2], args[3]));
-                break;
-            default:
-                break;
+        if (choice == 5) {
+            break;
         }
+
+        get_user_input(&num_args, args);
+        if (num_args == 0) continue;  // Если введено некорректное количество аргументов
+
+        double result;
+
+        result = operations[choice - 1].func(num_args, args[0], args[1], args[2], args[3]);
+        printf("Результат операции %s : %lf\n", operations[choice - 1].op_name, result);
     }
 
     return 0;
