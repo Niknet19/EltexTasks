@@ -8,8 +8,6 @@
 #include <time.h>
 #include <unistd.h>
 
-#define SEM_KEY 0x1234
-
 // Операции P (-1) и V (+1)
 struct sembuf p_op = {0, -1, 0};
 struct sembuf v_op = {0, 1, 0};
@@ -121,9 +119,9 @@ int main(int argc, char** argv) {
         perror("Ошибка pipe");
         return EXIT_FAILURE;
     }
-
+    key_t key = ftok("aaaaa", 2);
     // Создаем семафор
-    int semid = semget(SEM_KEY, 1, IPC_CREAT | 0666);
+    int semid = semget(key, 1, IPC_CREAT | 0666);
     if (semid == -1) {
         perror("Ошибка создания семафора");
         return EXIT_FAILURE;
